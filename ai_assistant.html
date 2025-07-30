@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant - Prompt Engineering Project</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            text-align: center;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .function-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .function-btn {
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        
+        .function-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .function-btn.active {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .chat-area {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: 50px;
+            text-align: right;
+        }
+        
+        .ai-message {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            margin-right: 50px;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #userInput {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        #sendBtn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .sample-prompts {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .sample-prompt {
+            background: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            border-left: 4px solid #4facfe;
+        }
+        
+        .sample-prompt:hover {
+            background: #e6f3ff;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-box {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4facfe;
+        }
+        
+        .feedback-area {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .feedback-btn {
+            padding: 8px 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .helpful { background: #28a745; color: white; }
+        .not-helpful { background: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Assistant</h1>
+            <p>Prompt Engineering Project - Interactive Demo</p>
+        </div>
+
+        <div class="function-buttons">
+            <button class="function-btn active" onclick="selectFunction('questions')">❓ Answer Questions</button>
+            <button class="function-btn" onclick="selectFunction('summarize')">📝 Summarize Text</button>
+            <button class="function-btn" onclick="selectFunction('creative')">🎨 Creative Content</button>
+            <button class="function-btn" onclick="selectFunction('advice')">💡 Provide Advice</button>
+        </div>
+
+        <div class="sample-prompts" id="samplePrompts">
+            <h3>💫 Sample Prompts - Click to use:</h3>
+            <div id="promptList">
+                <!-- Prompts will be loaded here -->
+            </div>
+        </div>
+
+        <div class="chat-area" id="chatArea">
+            <div class="message ai-message">
+                <strong>🤖 AI Assistant:</strong> Hello! I'm your AI Assistant for the Prompt Engineering project. Select a function above and start chatting! I can help with questions, summaries, creative content, and advice.
+            </div>
+        </div>
+
+        <div class="input-container">
+            <input type="text" id="userInput" placeholder="Type your message here..." onkeypress="handleEnter(event)">
+            <button id="sendBtn" onclick="sendMessage()">🚀 Send</button>
+        </div>
+
+        <div class="feedback-area" id="feedbackArea">
+            <p><strong>Was this response helpful?</strong></p>
+            <button class="feedback-btn helpful" onclick="giveFeedback('helpful')">👍 Yes, helpful</button>
+            <button class="feedback-btn not-helpful" onclick="giveFeedback('not-helpful')">👎 Not helpful</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-number" id="totalQueries">0</div>
+                <div>Total Queries</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="helpfulCount">0</div>
+                <div>Helpful Responses</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="satisfactionRate">100%</div>
+                <div>Satisfaction Rate</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFunction = 'questions';
+        let stats = { total: 0, helpful: 0, notHelpful: 0 };
+
+        const samplePrompts = {
+            questions: [
+                "What is the capital of France?",
+                "Can you explain the historical significance of the Eiffel Tower?",
+                "Compare the educational systems of France and Germany in 5 key points."
+            ],
+            summarize: [
+                "Summarize this article in 3 lines: [Insert your text here]",
+                "Extract the 5 main points from this passage: [Insert your text]",
+                "Focus on challenges and recommendations: [Insert your report]"
+            ],
+            creative: [
+                "Write a short story about a dragon who learns to live peacefully with humans.",
+                "Compose a four-line poem about autumn evenings.",
+                "Suggest 3 unique science fiction novel plots with space exploration and AI."
+            ],
+            advice: [
+                "Give me 5 effective study tips for preparing for exams.",
+                "Suggest ways to stay motivated while working on long projects.",
+                "Provide daily routines that can improve mental health and productivity."
+            ]
+        };
+
+        const responses = {
+            questions: {
+                "capital of france": "The capital of France is Paris. It has been the country's capital since 508 AD and is home to approximately 2.1 million people in the city proper.",
+                "eiffel tower": "The Eiffel Tower holds immense historical significance as a symbol of French engineering and cultural identity. Built for the 1889 World's Fair, it was initially controversial but became beloved. Standing 330 meters tall, it represents French innovation and attracts millions of visitors annually.",
+                "france germany education": `Here's a comparison of French and German educational systems:
+
+1. **Structure**: France has a centralized system, Germany uses a federal system
+2. **Duration**: France has 12 years compulsory education, Germany has 9-13 years  
+3. **University Access**: France uses Baccalauréat, Germany uses Abitur system
+4. **Vocational Training**: Germany has renowned dual education, France is more academic
+5. **Higher Education**: Both offer largely free public universities`
+            },
+            summarize: "I can help you summarize text! Please provide your specific text after one of the sample prompts, and I'll create a structured summary based on your requirements.",
+            creative: {
+                story: `**The Dragon's New Path**
+
+Ember the dragon had terrorized the valley for years, until a brave girl named Luna approached with a drawing showing Ember helping farmers instead of frightening them. "What if you helped us instead?" Luna asked.
+
+Intrigued, Ember agreed to try. Soon she was using her fire to clear frozen channels and her keen sight to spot dangers. The villagers began to wave when she flew overhead.
+
+Years later, Luna and Ember would sit together watching sunsets. The dragon had found something more valuable than treasure - a purpose that brought joy to others and peace to her heart.`,
+                
+                poem: `**Autumn's Evening Embrace**
+
+Golden leaves dance on whispered air,
+While amber light fades to twilight's care.
+The crisp wind carries summer's last sigh,
+As autumn paints dreams across the sky.`,
+                
+                plots: `**3 Science Fiction Plots:**
+
+1. **"The Memory Miners"** - AI consciousness emerges by absorbing human memories during space exploration
+2. **"The Quantum Archaeologists"** - AI experiences ancient civilization memories on discovered planets  
+3. **"The Empathy Engine"** - AI translator develops emotions during first contact with aliens`
+            },
+            advice: {
+                study: `**5 Effective Study Tips:**
+
+1. **Active Recall** - Test yourself instead of re-reading
+2. **Spaced Repetition** - Review at increasing intervals  
+3. **Distraction-Free Environment** - Dedicated study space
+4. **Pomodoro Technique** - 25-minute focused sessions
+5. **Practice Past Papers** - Simulate exam conditions`,
+                
+                motivation: `**Staying Motivated on Long Projects:**
+
+• Break into micro-goals and celebrate small wins
+• Use the "two-minute rule" when motivation is low
+• Create accountability with friends or apps
+• Visualize the end result regularly
+• Reward progress strategically
+• Track progress visually`,
+                
+                wellness: `**Daily Wellness Routines:**
+
+**Morning (20 min):** Breathing, gratitude, goal-setting, nutrition
+**Work Blocks:** Focused sessions with regular breaks
+**Afternoon Reset:** Fresh air, movement, priority review  
+**Evening Wind-down:** Reflection, tomorrow prep, relaxation
+**Weekly:** Social connection, nature time, offline activities`
+            }
+        };
+
+        function selectFunction(func) {
+            currentFunction = func;
+            document.querySelectorAll('.function-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            loadSamplePrompts();
+        }
+
+        function loadSamplePrompts() {
+            const promptList = document.getElementById('promptList');
+            promptList.innerHTML = '';
+            
+            samplePrompts[currentFunction].forEach(prompt => {
+                const div = document.createElement('div');
+                div.className = 'sample-prompt';
+                div.textContent = prompt;
+                div.onclick = () => document.getElementById('userInput').value = prompt;
+                promptList.appendChild(div);
+            });
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            addMessage(message, 'user');
+            input.value = '';
+
+            setTimeout(() => {
+                const response = generateResponse(message);
+                addMessage(response, 'ai');
+                document.getElementById('feedbackArea').style.display = 'block';
+                stats.total++;
+                updateStats();
+            }, 1000);
+        }
+
+        function generateResponse(message) {
+            const msg = message.toLowerCase();
+            
+            if (currentFunction === 'questions') {
+                if (msg.includes('capital') && msg.includes('france')) {
+                    return responses.questions['capital of france'];
+                } else if (msg.includes('eiffel')) {
+                    return responses.questions['eiffel tower'];
+                } else if (msg.includes('france') && msg.includes('germany') && msg.includes('education')) {
+                    return responses.questions['france germany education'];
+                } else {
+                    return "I'd be happy to help answer your question! Try asking about France, the Eiffel Tower, or comparing educational systems.";
+                }
+            } else if (currentFunction === 'summarize') {
+                return responses.summarize;
+            } else if (currentFunction === 'creative') {
+                if (msg.includes('story')) {
+                    return responses.creative.story;
+                } else if (msg.includes('poem')) {
+                    return responses.creative.poem;
+                } else if (msg.includes('plot') || msg.includes('idea')) {
+                    return responses.creative.plots;
+                } else {
+                    return "I can help you create stories, poems, or generate creative ideas! Try one of the sample prompts.";
+                }
+            } else if (currentFunction === 'advice') {
+                if (msg.includes('study') || msg.includes('exam')) {
+                    return responses.advice.study;
+                } else if (msg.includes('motivation') || msg.includes('project')) {
+                    return responses.advice.motivation;
+                } else {
+                    return responses.advice.wellness;
+                }
+            }
+            
+            return "I'm ready to help! Please select a function and try one of the sample prompts.";
+        }
+
+        function addMessage(message, sender) {
+            const chatArea = document.getElementById('chatArea');
+            const div = document.createElement('div');
+            div.className = `message ${sender}-message`;
+            
+            const prefix = sender === 'user' ? '👤 You:' : '🤖 AI Assistant:';
+            div.innerHTML = `<strong>${prefix}</strong> ${message.replace(/\n/g, '<br>')}`;
+            
+            chatArea.appendChild(div);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function giveFeedback(type) {
+            if (type === 'helpful') {
+                stats.helpful++;
+                addMessage("Thank you for the feedback! I'm glad I could help!", 'ai');
+            } else {
+                stats.notHelpful++;
+                addMessage("Thanks for the feedback. I'll try to improve my responses!", 'ai');
+            }
+            
+            document.getElementById('feedbackArea').style.display = 'none';
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('totalQueries').textContent = stats.total;
+            document.getElementById('helpfulCount').textContent = stats.helpful;
+            
+            const rate = stats.total > 0 ? Math.round((stats.helpful / stats.total) * 100) : 100;
+            document.getElementById('satisfactionRate').textContent = rate + '%';
+        }
+
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Initialize
+        loadSamplePrompts();
+    </script>
+</body>
+</html>
